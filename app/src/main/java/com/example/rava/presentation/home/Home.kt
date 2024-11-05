@@ -28,8 +28,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,23 +40,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-
+import com.example.rava.domain.model.MusicFile
 
 @Composable
 fun Home(
   modifier: Modifier = Modifier,
+  viewModel: HomeViewModel = hiltViewModel()
 ) {
 
   val context = LocalContext.current
 
-  val musicFiles = remember { mutableStateOf<List<MusicFile>>(emptyList()) }
+  var musicFiles by rememberSaveable {
+    mutableStateOf(emptyList<MusicFile>())
+  }
 
   val permissionState = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.RequestPermission(),
     onResult = { isGranted ->
       if (isGranted) {
-        musicFiles.value = fetchLocalMusic(context)
+        viewModel.getMusic(context)
+        musicFiles = viewModel.state.musicFiles
       }
     }
   )
@@ -63,7 +71,8 @@ fun Home(
         Manifest.permission.READ_EXTERNAL_STORAGE
       ) == PackageManager.PERMISSION_GRANTED
     ) {
-      musicFiles.value = fetchLocalMusic(context)
+      viewModel.getMusic(context)
+      musicFiles = viewModel.state.musicFiles
     } else {
       permissionState.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
@@ -129,8 +138,8 @@ fun Home(
                 modifier.fillMaxSize()
               ) {
                 if (musicFiles != null) {
-                  items(musicFiles.value.size) { music ->
-                    MusicCard(musicFile = musicFiles.value[music])
+                  items(musicFiles.size) { music ->
+                    MusicCard(musicFile = musicFiles[music])
                   }
                 }
               }
