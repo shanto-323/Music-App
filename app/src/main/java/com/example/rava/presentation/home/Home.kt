@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,13 +42,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.rava.domain.model.MusicFile
+import com.example.rava.presentation.navigation.Route
 
 @Composable
 fun Home(
   modifier: Modifier = Modifier,
-  viewModel: HomeViewModel = hiltViewModel()
+  viewModel: HomeViewModel = hiltViewModel(),
+  navController: NavController
 ) {
 
   val context = LocalContext.current
@@ -139,7 +143,7 @@ fun Home(
               ) {
                 if (musicFiles != null) {
                   items(musicFiles.size) { music ->
-                    MusicCard(musicFile = musicFiles[music])
+                    MusicCard(musicFile = musicFiles[music], navController = navController)
                   }
                 }
               }
@@ -174,12 +178,18 @@ fun RailItem(
 fun MusicCard(
   modifier: Modifier = Modifier,
   musicFile: MusicFile,
+  navController: NavController
 ) {
   Row(
     modifier
       .fillMaxWidth()
       .height(60.dp)
-      .background(Color.Transparent),
+      .background(Color.Transparent)
+      .clickable(
+        onClick = {
+          navController.navigate("${Route.PLAYER}/${musicFile.id.toInt()}")
+        }
+      ),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.Start
   ) {
