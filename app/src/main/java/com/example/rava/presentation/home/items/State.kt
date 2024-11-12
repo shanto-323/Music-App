@@ -1,4 +1,4 @@
-package com.example.rava.presentation.home
+package com.example.rava.presentation.home.items
 
 import com.example.rava.domain.model.MusicFile
 
