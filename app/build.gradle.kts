@@ -93,4 +93,9 @@ dependencies {
 //Material3
   implementation ("androidx.compose.material3:material3:1.2.1")
 
+  implementation ("androidx.palette:palette-ktx:1.0.0")
+  //Icons
+  implementation ("androidx.compose.material:material-icons-extended:1.7.5")
+
+
 }
