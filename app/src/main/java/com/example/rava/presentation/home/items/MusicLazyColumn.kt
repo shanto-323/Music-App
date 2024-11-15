@@ -5,26 +5,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.paging.compose.LazyPagingItems
 import com.example.rava.domain.model.MusicFile
-import kotlinx.coroutines.launch
 
 @Composable
 fun MusicLazyColumn(
   modifier: Modifier = Modifier,
   onClick: () -> Unit,
-  musicFiles: List<MusicFile>?,
+  musicFiles: LazyPagingItems<MusicFile>,
   musicPlay: (MusicFile) -> Unit
 ) {
+
   LazyColumn(
     modifier.fillMaxSize()
   ) {
     if (musicFiles != null) {
-      items(musicFiles.size) { music ->
+      items(musicFiles.itemSnapshotList.size) { music ->
         MusicCard(
-          musicFile = musicFiles[music],
+          musicFile = musicFiles[music]!!,
           isOpen = {
             onClick()
-            musicPlay(musicFiles[music])
+            musicPlay(musicFiles[music]!!)
           }
         )
       }

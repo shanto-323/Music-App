@@ -69,8 +69,8 @@ dependencies {
 
   implementation("io.coil-kt:coil-compose:2.7.0")
   implementation("com.google.android.exoplayer:exoplayer:2.19.1")
-  implementation ("androidx.media3:media3-exoplayer:1.4.1")
-  implementation ("androidx.media3:media3-ui:1.4.1")
+  implementation("androidx.media3:media3-exoplayer:1.4.1")
+  implementation("androidx.media3:media3-ui:1.4.1")
 
   val nav_version = "2.8.3"
   implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
@@ -92,12 +92,23 @@ dependencies {
   //Coil
   implementation("io.coil-kt:coil-compose:2.7.0")
 
-//Material3
-  implementation ("androidx.compose.material3:material3:1.2.1")
+  //Material3
+  implementation("androidx.compose.material3:material3:1.2.1")
 
-  implementation ("androidx.palette:palette-ktx:1.0.0")
+  implementation("androidx.palette:palette-ktx:1.0.0")
   //Icons
-  implementation ("androidx.compose.material:material-icons-extended:1.7.5")
+  implementation("androidx.compose.material:material-icons-extended:1.7.5")
 
+  val roomVersion = "2.6.1"
+  implementation("androidx.room:room-runtime:$roomVersion")
+  annotationProcessor("androidx.room:room-compiler:$roomVersion")
+  kapt("androidx.room:room-compiler:$roomVersion")
+  implementation("androidx.room:room-ktx:$roomVersion")
+  testImplementation("androidx.room:room-testing:$roomVersion")
+  implementation("androidx.room:room-paging:$roomVersion")
+
+  val pagingVersion = "3.3.4"
+  implementation("androidx.paging:paging-runtime:$pagingVersion")
+  implementation("androidx.paging:paging-compose:3.3.4")
 
 }
