@@ -1,6 +1,7 @@
 package com.example.rava.di
 
 import android.content.Context
+import androidx.media3.exoplayer.ExoPlayer
 import com.example.rava.data.repository.RepositoryImpl
 import com.example.rava.domain.repository.Repository
 import dagger.Module
@@ -18,5 +19,13 @@ object AppModule {
   @Singleton
   fun provideRepository(): Repository {
     return RepositoryImpl()
+  }
+
+  @Provides
+  @Singleton
+  fun provideExoplayer(
+    @ApplicationContext context: Context
+  ): ExoPlayer{
+    return ExoPlayer.Builder(context).build()
   }
 }

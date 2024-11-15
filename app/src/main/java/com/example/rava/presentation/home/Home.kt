@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SkipNext
@@ -45,6 +46,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +64,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.rava.domain.model.MusicFile
@@ -78,19 +83,9 @@ fun Home(
   navController: NavController
 ) {
 
-  var sheetState = rememberModalBottomSheetState(
-    skipPartiallyExpanded = true
-  )
-  var isSheetOpen by rememberSaveable {
-    mutableStateOf(false)
-  }
-  var musicPlay by rememberSaveable {
-    mutableStateOf<MusicFile?>(null)
-  }
-  LaunchedEffect(musicPlay) {
-    Log.d("TAG2", "Home: $musicPlay")
-  }
-
+  var sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  var isSheetOpen by rememberSaveable { mutableStateOf(false) }
+  var musicPlay by rememberSaveable { mutableStateOf<MusicFile?>(null) }
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   var musicFiles by rememberSaveable {
@@ -118,6 +113,17 @@ fun Home(
     }
   }
 
+  val exoPlayer = viewModel.exoPlayer
+  var isPlaying by rememberSaveable { mutableStateOf(false) }
+  if (musicPlay != null) {
+    LaunchedEffect(musicPlay) {
+      viewModel.exoplayerInstance(musicPlay!!.path)
+      exoPlayer.play()
+      isPlaying = true
+    }
+  }
+
+
   Box(
     modifier
       .background(Color.DarkGray)
@@ -130,6 +136,7 @@ fun Home(
         scope.launch {
           sheetState.show()
         }
+        Log.d("TAG2", "Home: $musicPlay")
       },
       musicFiles = musicFiles,
       musicPlay = { music ->
@@ -137,9 +144,11 @@ fun Home(
       },
       modifier = Modifier.padding(10.dp)
     )
+
     Box(modifier = modifier.align(Alignment.BottomCenter)) {
       BottomNavigationBar()
     }
+
     FloatingActionButton(
       onClick = { /* Your FAB action */ },
       modifier = Modifier
@@ -160,7 +169,7 @@ fun Home(
               interactionSource = remember {
                 MutableInteractionSource()
               }
-            ){
+            ) {
               isSheetOpen = true
               scope.launch {
                 sheetState.show()
@@ -177,11 +186,18 @@ fun Home(
               .clip(RoundedCornerShape(10.dp))
           )
         }
-
         IconButtonClick(
-          imageVector = Icons.Default.PlayArrow,
-          onClick = {},
+          imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+          onClick = {
+            if (isPlaying) {
+              exoPlayer.pause()
+            } else {
+              exoPlayer.play()
+            }
+            isPlaying = !isPlaying
+          }
         )
+
       }
     }
   }
@@ -190,9 +206,20 @@ fun Home(
     MusicBottomSheet(
       onDismiss = { isSheetOpen = false },
       sheetState = sheetState,
-      musicFile = musicPlay!!
+      musicFile = musicPlay!!,
+      isPlaying = isPlaying,
+      playPause = {
+        if (isPlaying) (
+                exoPlayer.pause()
+                ) else {
+          exoPlayer.play()
+        }
+        isPlaying = !isPlaying
+      },
+      player = exoPlayer
     )
   }
+
 }
 
 

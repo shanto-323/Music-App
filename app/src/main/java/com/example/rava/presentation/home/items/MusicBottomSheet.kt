@@ -1,6 +1,13 @@
 package com.example.rava.presentation.home.items
 
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -27,9 +35,12 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,12 +49,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImage
 import com.example.rava.domain.model.MusicFile
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,8 +66,21 @@ fun MusicBottomSheet(
   modifier: Modifier = Modifier,
   onDismiss: () -> Unit,
   sheetState: SheetState,
-  musicFile: MusicFile
+  musicFile: MusicFile,
+  isPlaying: Boolean = false,
+  playPause: () -> Unit,
+  player: ExoPlayer
 ) {
+  var currentPosition by rememberSaveable { mutableStateOf(0L) }
+  val audioDuration = musicFile.duration
+  LaunchedEffect(player) {
+    while (true) {
+      currentPosition = player.currentPosition
+      delay(5L)
+    }
+  }
+
+
   ModalBottomSheet(
     modifier = Modifier.fillMaxHeight(),
     onDismissRequest = { onDismiss() },
@@ -69,6 +97,8 @@ fun MusicBottomSheet(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Top
     ) {
+
+      // Starting Row
       Row(
         modifier
           .fillMaxWidth()
@@ -83,6 +113,7 @@ fun MusicBottomSheet(
         )
       }
 
+      // Image of the content
       if (musicFile != null) {
         Card(
           modifier
@@ -103,6 +134,7 @@ fun MusicBottomSheet(
         }
       }
 
+      //Name && Title
       Text(
         modifier = Modifier.fillMaxWidth(),
         text = musicFile.title,
@@ -113,7 +145,33 @@ fun MusicBottomSheet(
         text = musicFile.artist,
         style = TextStyle()
       )
-      MusicSlider()
+
+      //Music time
+      Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = formatTime(timeInMillis = currentPosition.toFloat()),
+          style = TextStyle()
+        )
+        Text(
+          text = formatTime(timeInMillis = audioDuration.toFloat()),
+          style = TextStyle()
+        )
+      }
+
+      //Slider
+      MusicSlider(
+        position = currentPosition.toFloat(),
+        valueRange = musicFile.duration.toFloat(),
+        newPosition = {
+          player.seekTo(it.toLong())
+        }
+      )
+
+      //Play , Skip prev , Skip next
       Row(
         modifier
           .fillMaxWidth()
@@ -122,20 +180,24 @@ fun MusicBottomSheet(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceEvenly
       ) {
-
         IconButtonClick(
           imageVector = Icons.Default.SkipPrevious,
-          onClick = {}
+          onClick = {
+
+          }
         )
         IconButtonClick(
-          imageVector = Icons.Default.PlayArrow,
-          onClick = {},
+          imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+          onClick = {
+            playPause()
+          },
         )
         IconButtonClick(
           imageVector = Icons.Default.SkipNext,
           onClick = {}
         )
       }
+
     }
   }
 }
@@ -149,7 +211,10 @@ fun IconButtonClick(
   tint: Color = Color.White,
   size: Dp = 44.dp
 ) {
-  IconButton(onClick = { onClick() }) {
+  IconButton(
+    onClick = { onClick() },
+    interactionSource = remember { MutableInteractionSource() },
+  ) {
     Icon(
       imageVector = imageVector,
       contentDescription = "",
@@ -161,20 +226,33 @@ fun IconButtonClick(
   }
 }
 
-@Composable
-fun MyText(modifier: Modifier = Modifier) {
-
-}
-
 
 @Composable
-private fun MusicSlider() {
+private fun MusicSlider(
+  position: Float = 0f,
+  valueRange: Float = 30f,
+  newPosition: (Float) -> Unit = {}
+) {
+
   var sliderPosition by rememberSaveable {
-    mutableFloatStateOf(0f)
+    mutableFloatStateOf(position)
+  }
+  LaunchedEffect(position) {
+    sliderPosition = position
   }
   Slider(
     value = sliderPosition,
-    onValueChange = {sliderPosition = it},
-    valueRange = 0f..30f
+    onValueChange = {
+      sliderPosition = it
+      newPosition(it)
+    },
+    valueRange = 0f..valueRange
   )
+}
+
+fun formatTime(timeInMillis: Float): String {
+  val totalSeconds = (timeInMillis / 1000).toInt() // Convert milliseconds to seconds
+  val minutes = totalSeconds / 60
+  val seconds = totalSeconds % 60
+  return String.format("%02d:%02d", minutes, seconds)
 }

@@ -69,6 +69,8 @@ dependencies {
 
   implementation("io.coil-kt:coil-compose:2.7.0")
   implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+  implementation ("androidx.media3:media3-exoplayer:1.4.1")
+  implementation ("androidx.media3:media3-ui:1.4.1")
 
   val nav_version = "2.8.3"
   implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
