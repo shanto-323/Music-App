@@ -11,7 +11,7 @@ fun MusicEntity.toDomainModel(): MusicFile {
     artist = this.artist,
     path = this.path,
     duration = this.duration,
-    albumArtUri = Uri.parse(this.albumArtUri)
+    albumArtUri = this.albumArtUri
   )
 }
 fun MusicFile.toDomainModel(): MusicEntity {
@@ -21,6 +21,6 @@ fun MusicFile.toDomainModel(): MusicEntity {
     artist = this.artist,
     path = this.path,
     duration = this.duration,
-    albumArtUri = this.albumArtUri.toString()
+    albumArtUri = this.albumArtUri
   )
 }

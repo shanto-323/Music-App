@@ -59,7 +59,7 @@ class RepositoryImpl @Inject constructor() : Repository {
               artist,
               path,
               duration,
-              albumArtUri
+              albumArtUri.toString()
             )
           )
         }

@@ -9,7 +9,7 @@ import com.example.rava.data.database.model.MusicEntity
 
 @Dao
 interface Dao {
-  @Query("SELECT * FROM music_table ORDER BY id ASC")
+  @Query("SELECT * FROM music_table ORDER BY id DESC")
   fun getAllMusic(): PagingSource<Int, MusicEntity>
 
 

@@ -1,16 +1,11 @@
 package com.example.rava.presentation.home.items
-import android.annotation.SuppressLint
+
 import android.util.Log
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,15 +43,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImage
 import com.example.rava.domain.model.MusicFile
+import com.example.rava.presentation.home.HomeViewModel
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,16 +61,12 @@ fun MusicBottomSheet(
   musicFile: MusicFile,
   isPlaying: Boolean = false,
   playPause: () -> Unit,
-  player: ExoPlayer
+  player: ExoPlayer,
+  state: State,
+  viewModel: HomeViewModel
 ) {
-  var currentPosition by rememberSaveable { mutableStateOf(0L) }
+  var currentPosition = state.timeOfMusic
   val audioDuration = musicFile.duration
-  LaunchedEffect(player) {
-    while (true) {
-      currentPosition = player.currentPosition
-      delay(5L)
-    }
-  }
 
 
   ModalBottomSheet(

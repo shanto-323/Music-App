@@ -51,12 +51,22 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.rava.domain.model.MusicFile
 import com.example.rava.presentation.home.items.IconButtonClick
 import com.example.rava.presentation.home.items.MusicBottomSheet
 import com.example.rava.presentation.home.items.MusicLazyColumn
 import kotlinx.coroutines.launch
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.rava.presentation.home.items.Event
+import kotlinx.coroutines.delay
+
+
+/*
+1. problem with configuration change
+2. add a search bar
+3. modify play pause
+*/
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,15 +75,19 @@ fun Home(
   viewModel: HomeViewModel = hiltViewModel(),
   navController: NavController
 ) {
+  val state = viewModel.state
+  val scope = rememberCoroutineScope()
+  val context = LocalContext.current
+  val exoPlayer = viewModel.exoPlayer
 
   var sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   var isSheetOpen by rememberSaveable { mutableStateOf(false) }
-  var musicPlay by rememberSaveable { mutableStateOf<MusicFile?>(null) }
-  val scope = rememberCoroutineScope()
-  val context = LocalContext.current
 
-  var musicFiles = viewModel.musicFiles.collectAsLazyPagingItems()
+  var musicFiles = state.musicFiles.collectAsLazyPagingItems()
+  var musicPlay = state.music
+  var isPlaying = state.isPlaying
 
+  //Asking user permission in first time
   val permissionState = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.RequestPermission(),
     onResult = { isGranted ->
@@ -95,16 +109,39 @@ fun Home(
     }
   }
 
-  val exoPlayer = viewModel.exoPlayer
-  var isPlaying by rememberSaveable { mutableStateOf(false) }
+  //-----------------------------------------------
+
+  LaunchedEffect(state.isPlaying) {
+    exoPlayer.playWhenReady = state.isPlaying
+    if (!state.isPlaying){
+      exoPlayer.pause()
+    }
+    Log.d("TAG2", "Home: ${state.isPlaying}")
+  }
+
   if (musicPlay != null) {
-    LaunchedEffect(musicPlay) {
-      viewModel.exoplayerInstance(musicPlay!!.path)
-      exoPlayer.play()
-      isPlaying = true
+    LaunchedEffect(Unit) {
+      viewModel.restoreCurrentMusic()
+    }
+  }
+  LaunchedEffect(musicPlay) {
+    viewModel.exoplayerInstance(musicPlay.path)
+    exoPlayer.playWhenReady = true
+  }
+  //Get last playback position
+  LaunchedEffect(Unit) {
+    if (state.timeOfMusic > 0L) {
+      exoPlayer.seekTo(state.timeOfMusic)
     }
   }
 
+  //Update playback position in every 5mil sec
+  LaunchedEffect(exoPlayer) {
+    while (true) {
+      viewModel.onEvent(Event.TimeOfMusic(timeOfMusic = exoPlayer.currentPosition))
+      delay(5L)
+    }
+  }
 
   Box(
     modifier
@@ -118,11 +155,13 @@ fun Home(
         scope.launch {
           sheetState.show()
         }
-        Log.d("TAG2", "Home: $musicPlay")
+        if (musicPlay != null) {
+          viewModel.onEvent(Event.IsPlaying(isPlaying = true))
+        }
       },
       musicFiles = musicFiles,
       musicPlay = { music ->
-        musicPlay = music
+        viewModel.saveState(music = music)
       },
       modifier = Modifier.padding(10.dp)
     )
@@ -176,7 +215,7 @@ fun Home(
             } else {
               exoPlayer.play()
             }
-            isPlaying = !isPlaying
+            viewModel.onEvent(Event.IsPlaying(isPlaying = !state.isPlaying))
           }
         )
 
@@ -191,14 +230,16 @@ fun Home(
       musicFile = musicPlay!!,
       isPlaying = isPlaying,
       playPause = {
-        if (isPlaying) (
-                exoPlayer.pause()
-                ) else {
+        if (isPlaying) {
+          exoPlayer.pause()
+        } else {
           exoPlayer.play()
         }
-        isPlaying = !isPlaying
+        viewModel.onEvent(Event.IsPlaying(isPlaying = !isPlaying))
       },
-      player = exoPlayer
+      player = exoPlayer,
+      viewModel = viewModel,
+      state = state
     )
   }
 
