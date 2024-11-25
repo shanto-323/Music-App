@@ -7,18 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.rava.domain.model.MusicFile
 import com.example.rava.domain.repository.DatabaseRepository
-import com.example.rava.domain.repository.Repository
-import com.example.rava.presentation.home.items.Event
-import com.example.rava.presentation.home.items.State
+import com.example.rava.presentation.home.StateChange.Event
+import com.example.rava.presentation.home.StateChange.State
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,21 +32,16 @@ class HomeViewModel @Inject constructor(
         state.copy(currentIndexOfMusic = e.currentIndexOfMusic)
 
       is Event.IsPlaying -> {
-        state.copy(isPlaying = e.isPlaying)
-        exoPlayer.playWhenReady = e.isPlaying
+        state = state.copy(isPlaying = e.isPlaying)
       }
 
       is Event.Music -> state = state.copy(music = e.music)
       is Event.TimeOfMusic -> state = state.copy(timeOfMusic = e.timeOfMusic)
+      is Event.PlayPauseIcon -> state = state.copy(playPauseIcon = e.playPauseIcon)
     }
   }
 
   init {
-    exoPlayer.addListener(object : Player.Listener {
-      override fun onIsPlayingChanged(isPlaying: Boolean) {
-        state = state.copy(isPlaying = isPlaying)
-      }
-    })
     getMusic()
   }
 
@@ -84,7 +75,6 @@ class HomeViewModel @Inject constructor(
     exoPlayer.apply {
       setMediaItem(mediaItem)
       prepare()
-      playWhenReady = true
     }
   }
 

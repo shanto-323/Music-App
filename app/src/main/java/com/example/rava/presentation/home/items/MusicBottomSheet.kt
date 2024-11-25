@@ -1,8 +1,6 @@
 package com.example.rava.presentation.home.items
 
-import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,46 +9,28 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImage
 import com.example.rava.domain.model.MusicFile
-import com.example.rava.presentation.home.HomeViewModel
-import kotlinx.coroutines.delay
+import com.example.rava.presentation.home.StateChange.State
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,11 +39,9 @@ fun MusicBottomSheet(
   onDismiss: () -> Unit,
   sheetState: SheetState,
   musicFile: MusicFile,
-  isPlaying: Boolean = false,
   playPause: () -> Unit,
-  player: ExoPlayer,
   state: State,
-  viewModel: HomeViewModel
+  seekTo: (Long) -> Unit,
 ) {
   var currentPosition = state.timeOfMusic
   val audioDuration = musicFile.duration
@@ -155,7 +133,7 @@ fun MusicBottomSheet(
         position = currentPosition.toFloat(),
         valueRange = musicFile.duration.toFloat(),
         newPosition = {
-          player.seekTo(it.toLong())
+          seekTo(it.toLong())
         }
       )
 
@@ -175,7 +153,7 @@ fun MusicBottomSheet(
           }
         )
         IconButtonClick(
-          imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+          imageVector = state.playPauseIcon,
           onClick = {
             playPause()
           },
@@ -190,53 +168,6 @@ fun MusicBottomSheet(
   }
 }
 
-
-@Composable
-fun IconButtonClick(
-  modifier: Modifier = Modifier,
-  onClick: () -> Unit = {},
-  imageVector: ImageVector,
-  tint: Color = Color.White,
-  size: Dp = 44.dp
-) {
-  IconButton(
-    onClick = { onClick() },
-    interactionSource = remember { MutableInteractionSource() },
-  ) {
-    Icon(
-      imageVector = imageVector,
-      contentDescription = "",
-      modifier = Modifier
-        .then(modifier)
-        .size(size),
-      tint = tint
-    )
-  }
-}
-
-
-@Composable
-private fun MusicSlider(
-  position: Float = 0f,
-  valueRange: Float = 30f,
-  newPosition: (Float) -> Unit = {}
-) {
-
-  var sliderPosition by rememberSaveable {
-    mutableFloatStateOf(position)
-  }
-  LaunchedEffect(position) {
-    sliderPosition = position
-  }
-  Slider(
-    value = sliderPosition,
-    onValueChange = {
-      sliderPosition = it
-      newPosition(it)
-    },
-    valueRange = 0f..valueRange
-  )
-}
 
 fun formatTime(timeInMillis: Float): String {
   val totalSeconds = (timeInMillis / 1000).toInt() // Convert milliseconds to seconds

@@ -1,6 +1,6 @@
-package com.example.rava.presentation.home.items
+package com.example.rava.presentation.home.StateChange
 
-import androidx.paging.PagingData
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.rava.domain.model.MusicFile
 
 sealed class Event {
@@ -8,4 +8,5 @@ sealed class Event {
   data class IsPlaying(val isPlaying: Boolean) : Event()
   data class TimeOfMusic(val timeOfMusic: Long) : Event()
   data class CurrentIndexOfMusic(val currentIndexOfMusic: Long) : Event()
+  data class PlayPauseIcon(val playPauseIcon: ImageVector) : Event()
 }

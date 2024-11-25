@@ -16,20 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -56,16 +48,9 @@ import com.example.rava.presentation.home.items.MusicBottomSheet
 import com.example.rava.presentation.home.items.MusicLazyColumn
 import kotlinx.coroutines.launch
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.rava.presentation.home.items.Event
+import com.example.rava.presentation.home.items.BottomNavigationBar
+import com.example.rava.presentation.home.StateChange.Event
 import kotlinx.coroutines.delay
-
-
-/*
-1. problem with configuration change
-2. add a search bar
-3. modify play pause
-*/
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +71,7 @@ fun Home(
   var musicFiles = state.musicFiles.collectAsLazyPagingItems()
   var musicPlay = state.music
   var isPlaying = state.isPlaying
+  var playPauseIcon = state.playPauseIcon
 
   //Asking user permission in first time
   val permissionState = rememberLauncherForActivityResult(
@@ -109,39 +95,41 @@ fun Home(
     }
   }
 
-  //-----------------------------------------------
 
-  LaunchedEffect(state.isPlaying) {
-    exoPlayer.playWhenReady = state.isPlaying
-    if (!state.isPlaying){
-      exoPlayer.pause()
-    }
-    Log.d("TAG2", "Home: ${state.isPlaying}")
+  LaunchedEffect(state) {
+    musicPlay = state.music
+    isPlaying = state.isPlaying
+    playPauseIcon = state.playPauseIcon
+    if (!isPlaying) viewModel.onEvent(Event.PlayPauseIcon(playPauseIcon = Icons.Default.PlayArrow))
+    else viewModel.onEvent(Event.PlayPauseIcon(playPauseIcon = Icons.Default.Pause))
   }
 
   if (musicPlay != null) {
-    LaunchedEffect(Unit) {
-      viewModel.restoreCurrentMusic()
+    LaunchedEffect(isPlaying) {
+      if (isPlaying)
+        exoPlayer.play()
+      else exoPlayer.pause()
     }
-  }
-  LaunchedEffect(musicPlay) {
-    viewModel.exoplayerInstance(musicPlay.path)
-    exoPlayer.playWhenReady = true
-  }
-  //Get last playback position
-  LaunchedEffect(Unit) {
-    if (state.timeOfMusic > 0L) {
-      exoPlayer.seekTo(state.timeOfMusic)
+    LaunchedEffect(musicPlay) {
+      viewModel.exoplayerInstance(musicPlay.path)
+    }
+    LaunchedEffect(exoPlayer) {
+      while (true) {
+        viewModel.onEvent(Event.TimeOfMusic(timeOfMusic = exoPlayer.currentPosition))
+        delay(5L)
+      }
+    }
+    LaunchedEffect(Unit) {
+      Log.d("TAG2", "Seek to ${state.timeOfMusic}")
+      if (state.timeOfMusic > 0L) {
+        Log.d("TAG2", "Seek to @ ${state.timeOfMusic}")
+        exoPlayer.seekTo(state.timeOfMusic)
+      }
     }
   }
 
-  //Update playback position in every 5mil sec
-  LaunchedEffect(exoPlayer) {
-    while (true) {
-      viewModel.onEvent(Event.TimeOfMusic(timeOfMusic = exoPlayer.currentPosition))
-      delay(5L)
-    }
-  }
+
+
 
   Box(
     modifier
@@ -208,12 +196,14 @@ fun Home(
           )
         }
         IconButtonClick(
-          imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+          imageVector = playPauseIcon,
           onClick = {
             if (isPlaying) {
               exoPlayer.pause()
+              viewModel.onEvent(Event.PlayPauseIcon(playPauseIcon = Icons.Default.Pause))
             } else {
               exoPlayer.play()
+              viewModel.onEvent(Event.PlayPauseIcon(playPauseIcon = Icons.Default.PlayArrow))
             }
             viewModel.onEvent(Event.IsPlaying(isPlaying = !state.isPlaying))
           }
@@ -228,7 +218,6 @@ fun Home(
       onDismiss = { isSheetOpen = false },
       sheetState = sheetState,
       musicFile = musicPlay!!,
-      isPlaying = isPlaying,
       playPause = {
         if (isPlaying) {
           exoPlayer.pause()
@@ -237,51 +226,18 @@ fun Home(
         }
         viewModel.onEvent(Event.IsPlaying(isPlaying = !isPlaying))
       },
-      player = exoPlayer,
-      viewModel = viewModel,
-      state = state
+      state = state,
+      seekTo = {
+        exoPlayer.seekTo(it)
+        Log.d("TAG2", "Seek To: $it")
+      }
     )
   }
 
 }
 
 
-@Composable
-fun BottomNavigationBar(modifier: Modifier = Modifier) {
-  val navList = listOf(
-    Screen.Home,
-    Screen.Search,
-    Screen.Library
-  )
-  NavigationBar(
-    modifier = modifier
-      .background(Color.Black.copy(alpha = 0.8f))
-      .fillMaxWidth()
-      .padding(horizontal = 20.dp),
-    containerColor = Color.Transparent,
-  ) {
-    navList.forEach { item ->
-      NavigationBarItem(selected = false, onClick = { /*TODO*/ },
-        icon = {
-          Icon(
-            imageVector = item.icon,
-            contentDescription = "",
-            tint = Color.White,
-            modifier = modifier.size(32.dp)
-          )
-        }
-      )
-    }
-  }
 
-}
-
-
-sealed class Screen(val route: String, val icon: ImageVector, val label: String) {
-  data object Home : Screen("home", Icons.Default.Home, "Home")
-  data object Search : Screen("search", Icons.Default.Search, "Search")
-  data object Library : Screen("library", Icons.Default.LibraryMusic, "Library")
-}
 
 
 
