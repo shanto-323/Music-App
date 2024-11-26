@@ -15,23 +15,21 @@ fun MusicLazyColumn(
   modifier: Modifier = Modifier,
   onClick: () -> Unit,
   musicFiles: LazyPagingItems<MusicFile>,
-  musicPlay: (MusicFile) -> Unit,
-  viewModel: HomeViewModel
+  musicPlay: (MusicFile) -> Unit
 ) {
+
   LazyColumn(
-    modifier = Modifier.fillMaxSize()
+    modifier.fillMaxSize()
   ) {
     if (musicFiles != null) {
       items(musicFiles.itemSnapshotList.size) { music ->
-        Text(text = musicFiles.itemSnapshotList[music]!!.artist.toString())
-//        MusicCard(
-//          onClick = {
-//            viewModel.onEvent(Event.Music(music = musicFiles[music]!!))
-//            onClick()
-//
-////            musicPlay(musicFiles[music]!!)
-//          }
-//        )
+        MusicCard(
+          musicFile = musicFiles[music]!!,
+          isOpen = {
+            onClick()
+            musicPlay(musicFiles[music]!!)
+          }
+        )
       }
     } else {
       item {
