@@ -64,23 +64,12 @@ class HomeViewModel @Inject constructor(
     }
   }
 
-  fun saveState(music: MusicFile) {
-    state = state.copy(
-      music = music
-    )
-  }
 
-  fun exoplayerInstance(uri: String, startPosition: Long = 0L) {
+  fun exoplayerInstance(uri: String) {
     val mediaItem = MediaItem.fromUri(uri)
     exoPlayer.apply {
       setMediaItem(mediaItem)
       prepare()
-    }
-  }
-
-  fun restoreCurrentMusic() {
-    state.music?.let {
-      exoplayerInstance(it.path, state.currentIndexOfMusic)
     }
   }
 

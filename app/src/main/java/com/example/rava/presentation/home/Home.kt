@@ -122,7 +122,7 @@ fun Home(
       else viewModel.onEvent(Event.PlayPauseIcon(playPauseIcon = Icons.Rounded.Pause))
     }
     LaunchedEffect(music) {
-      Log.d("TAG2","${musicFiles.itemSnapshotList.size}")
+      Log.d("TAG2", "${musicFiles.itemSnapshotList.size}")
       viewModel.exoplayerInstance(music.path)
     }
     LaunchedEffect(exoPlayer) {
@@ -139,8 +139,6 @@ fun Home(
   }
 
 
-
-
   Box(
     modifier
       .background(Color.DarkGray)
@@ -153,13 +151,6 @@ fun Home(
         scope.launch {
           sheetState.show()
         }
-        if (music != null) {
-          viewModel.onEvent(Event.IsPlaying(isPlaying = true))
-        }
-      },
-      musicFiles = musicFiles,
-      musicPlay = { music ->
-        viewModel.saveState(music = music)
       },
       modifier = Modifier.padding(10.dp),
       viewModel = viewModel
@@ -206,7 +197,6 @@ fun Home(
       state = state
     )
   }
-
 }
 
 
@@ -312,11 +302,5 @@ fun FloatingCardButton(
   }
 }
 
-
-@Preview
-@Composable
-private fun Preview() {
-  FloatingCardButton()
-}
 
 

@@ -1,6 +1,7 @@
 package com.example.rava.presentation.home.items
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -39,46 +40,78 @@ import com.example.rava.presentation.home.statechange.State
 @Composable
 fun MusicCard(
   modifier: Modifier = Modifier,
-  musicFile: MusicFile,
+  music: MusicFile,
   isOpen: () -> Unit,
 ) {
-  val name = musicFile.title
-  val artist = musicFile.artist
+  val musicName = music.title
+  val musicArtist = music.artist
   Row(
-    modifier
+    modifier = modifier
       .fillMaxWidth()
       .height(60.dp)
       .background(Color.Transparent)
       .clickable(
-        onClick = {
-          isOpen()
+        indication = null,
+        interactionSource = remember {
+          MutableInteractionSource()
         }
-      ),
+      ) {
+        isOpen()
+      },
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Start
+    horizontalArrangement = Arrangement.Center,
   ) {
-    AsyncImage(
-      model = musicFile.albumArtUri,
-      contentDescription = "MusicUri",
-      modifier
-        .size(60.dp)
-        .padding(4.dp)
-        .clip(RoundedCornerShape(4.dp))
-    )
-    Column(
-      modifier.weight(1f)
-        .padding(horizontal = 20.dp, vertical = 10.dp),
-      verticalArrangement = Arrangement.Top,
-      horizontalAlignment = Alignment.Start
+    Box(
+      modifier = Modifier
+        .fillMaxHeight()
+        .aspectRatio(1f)
+        .padding(2.dp)
     ) {
-      Text(
-        text = name,
-        modifier = modifier.fillMaxSize(),
-        style = TextStyle(
-
-        )
+      AsyncImage(
+        model = music.albumArtUri,
+        contentDescription = "Image",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+          .fillMaxSize()
+          .clip(RoundedCornerShape(7.dp))
       )
     }
-    IconButtonClick(imageVector = Icons.Outlined.FavoriteBorder, size = 32.dp)
+
+    Column(
+      modifier = Modifier
+        .fillMaxHeight()
+        .weight(1f)
+        .padding(horizontal = 10.dp),
+      verticalArrangement = Arrangement.Center
+    ) {
+      Text(
+        text = musicName,
+        style = TextStyle(
+          color = Color.Black,
+          fontSize = 18.sp,
+          fontWeight = FontWeight.Bold
+        ),
+        maxLines = 1
+      )
+      Text(
+        text = musicArtist,
+        style = TextStyle(
+          color = Color.Black,
+          fontSize = 12.sp,
+          fontWeight = FontWeight.SemiBold
+        ),
+        maxLines = 1
+      )
+    }
+    IconButtonClick(
+      imageVector = Icons.Rounded.MoreVert,
+      onClick = {
+
+      },
+      tint = Color.Black,
+      size = 30.dp
+    )
+    Spacer(modifier = Modifier.padding(5.dp))
   }
+
 }
