@@ -1,4 +1,4 @@
-package com.example.rava.presentation.home.StateChange
+package com.example.rava.presentation.home.statechange
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.rava.domain.model.MusicFile

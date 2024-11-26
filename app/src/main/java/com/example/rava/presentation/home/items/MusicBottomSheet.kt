@@ -29,8 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.rava.domain.model.MusicFile
-import com.example.rava.presentation.home.StateChange.State
+import com.example.rava.presentation.home.statechange.State
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,13 +37,13 @@ fun MusicBottomSheet(
   modifier: Modifier = Modifier,
   onDismiss: () -> Unit,
   sheetState: SheetState,
-  musicFile: MusicFile,
   playPause: () -> Unit,
   state: State,
   seekTo: (Long) -> Unit,
 ) {
   var currentPosition = state.timeOfMusic
-  val audioDuration = musicFile.duration
+  val music = state.music
+  val audioDuration = music.duration
 
 
   ModalBottomSheet(
@@ -80,7 +79,7 @@ fun MusicBottomSheet(
       }
 
       // Image of the content
-      if (musicFile != null) {
+      if (music != null) {
         Card(
           modifier
             .fillMaxWidth()
@@ -92,7 +91,7 @@ fun MusicBottomSheet(
           )
         ) {
           AsyncImage(
-            model = musicFile.albumArtUri,
+            model = music.albumArtUri,
             contentDescription = "Image",
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize()
@@ -103,12 +102,12 @@ fun MusicBottomSheet(
       //Name && Title
       Text(
         modifier = Modifier.fillMaxWidth(),
-        text = musicFile.title,
+        text = music.title,
         style = TextStyle()
       )
       Text(
         modifier = Modifier.fillMaxWidth(),
-        text = musicFile.artist,
+        text = music.artist,
         style = TextStyle()
       )
 
@@ -131,7 +130,7 @@ fun MusicBottomSheet(
       //Slider
       MusicSlider(
         position = currentPosition.toFloat(),
-        valueRange = musicFile.duration.toFloat(),
+        valueRange = music.duration.toFloat(),
         newPosition = {
           seekTo(it.toLong())
         }

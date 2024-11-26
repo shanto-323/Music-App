@@ -1,4 +1,4 @@
-package com.example.rava.presentation.home.StateChange
+package com.example.rava.presentation.home.statechange
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow

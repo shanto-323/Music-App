@@ -23,14 +23,14 @@ fun IconButtonClick(
   IconButton(
     onClick = { onClick() },
     interactionSource = remember { MutableInteractionSource() },
+    modifier = modifier.size(size)
   ) {
     Icon(
       imageVector = imageVector,
       contentDescription = "",
       modifier = Modifier
-        .then(modifier)
         .size(size),
-      tint = tint
+      tint = tint,
     )
   }
 }

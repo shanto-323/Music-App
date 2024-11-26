@@ -11,8 +11,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.paging.cachedIn
 import com.example.rava.domain.model.MusicFile
 import com.example.rava.domain.repository.DatabaseRepository
-import com.example.rava.presentation.home.StateChange.Event
-import com.example.rava.presentation.home.StateChange.State
+import com.example.rava.presentation.home.statechange.Event
+import com.example.rava.presentation.home.statechange.State
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
